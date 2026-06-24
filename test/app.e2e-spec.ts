@@ -6,7 +6,13 @@ import * as supertest from 'supertest';
 import type { SuperTestStatic } from 'supertest';
 import { DataSource, In, Repository } from 'typeorm';
 import { AppModule } from '../src/app.module';
-import { Batch, Role, User } from '../src/database/entities';
+import {
+  Batch,
+  Role,
+  Skill,
+  Specialization,
+  User,
+} from '../src/database/entities';
 import { UsersService } from '../src/users/users.service';
 import { I18nValidationExceptionFilter, I18nValidationPipe } from 'nestjs-i18n';
 
@@ -21,8 +27,15 @@ describe('Platform API e2e', () => {
   let dataSource: DataSource;
   let userRepository: Repository<User>;
   let batchRepository: Repository<Batch>;
+  let skillRepository: Repository<Skill>;
+  let specializationRepository: Repository<Specialization>;
+  let adminAccessToken: string | undefined;
+  let companyAccessToken: string | undefined;
 
   const batchName = 'Fullstack 2026 E2E';
+  const catalogBatchName = 'Catalog Batch E2E';
+  const skillName = 'Catalog Skill E2E';
+  const specializationName = 'Catalog Specialization E2E';
 
   const companyDto = {
     name: 'Acme Hiring',
@@ -69,6 +82,8 @@ describe('Platform API e2e', () => {
     dataSource = app.get(DataSource);
     userRepository = dataSource.getRepository(User);
     batchRepository = dataSource.getRepository(Batch);
+    skillRepository = dataSource.getRepository(Skill);
+    specializationRepository = dataSource.getRepository(Specialization);
 
     await cleanupFixtures();
   });
@@ -90,11 +105,22 @@ describe('Platform API e2e', () => {
         studentDto.username,
       ]),
     });
-    await batchRepository.delete({ name: batchName });
+    await batchRepository.delete({ name: In([batchName, catalogBatchName]) });
+    await skillRepository.delete({ name: skillName });
+    await specializationRepository.delete({ name: specializationName });
+    adminAccessToken = undefined;
+    companyAccessToken = undefined;
   }
 
   async function createAdminToken() {
-    await usersService.createByAdmin(adminDto, null);
+    if (adminAccessToken) {
+      return adminAccessToken;
+    }
+
+    const existingAdmin = await usersService.findByUsername(adminDto.username);
+    if (!existingAdmin) {
+      await usersService.createByAdmin(adminDto, null);
+    }
 
     const response = await request(app.getHttpServer())
       .post('/auth/login')
@@ -104,7 +130,33 @@ describe('Platform API e2e', () => {
       })
       .expect(200);
 
-    return response.body.access_token as string;
+    adminAccessToken = response.body.access_token as string;
+    return adminAccessToken;
+  }
+
+  async function createCompanyToken() {
+    if (companyAccessToken) {
+      return companyAccessToken;
+    }
+
+    const existingCompany = await usersService.findByUsername(
+      companyDto.username,
+    );
+
+    if (!existingCompany) {
+      await request(app.getHttpServer()).post('/users').send(companyDto);
+    }
+
+    const response = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({
+        username: companyDto.username,
+        password: companyDto.password,
+      })
+      .expect(200);
+
+    companyAccessToken = response.body.access_token as string;
+    return companyAccessToken;
   }
 
   describe('company signup and username login', () => {
@@ -117,6 +169,7 @@ describe('Platform API e2e', () => {
       expect(response.body).toHaveProperty('access_token');
       expect(response.body.user.username).toBe(companyDto.username);
       expect(response.body.user.role).toBe(Role.COMPANY);
+      companyAccessToken = response.body.access_token as string;
     });
 
     it('logs in with username and rejects phone login payloads', async () => {
@@ -153,6 +206,7 @@ describe('Platform API e2e', () => {
         })
         .expect(200);
       companyToken = companyLogin.body.access_token as string;
+      companyAccessToken = companyToken;
 
       batch = await batchRepository.save(
         batchRepository.create({
@@ -209,6 +263,97 @@ describe('Platform API e2e', () => {
 
       expect(Array.isArray(response.body.items)).toBe(true);
       expect(response.body.items[0].username).toBe(studentDto.username);
+    });
+  });
+
+  describe('admin-managed catalogs', () => {
+    let adminToken: string;
+    let companyToken: string;
+
+    beforeAll(async () => {
+      adminToken = await createAdminToken();
+      companyToken = await createCompanyToken();
+    });
+
+    it('allows admins to create batch, skill, and specialization records', async () => {
+      const batchResponse = await request(app.getHttpServer())
+        .post('/batches')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          name: catalogBatchName,
+          description: 'A catalog batch created by e2e tests',
+        })
+        .expect(201);
+
+      expect(batchResponse.body.name).toBe(catalogBatchName);
+
+      const skillResponse = await request(app.getHttpServer())
+        .post('/skills')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          name: skillName,
+          description: 'A catalog skill created by e2e tests',
+        })
+        .expect(201);
+
+      expect(skillResponse.body.name).toBe(skillName);
+
+      const specializationResponse = await request(app.getHttpServer())
+        .post('/specializations')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          name: specializationName,
+          description: 'A catalog specialization created by e2e tests',
+        })
+        .expect(201);
+
+      expect(specializationResponse.body.name).toBe(specializationName);
+    });
+
+    it('allows authenticated users to read catalog records', async () => {
+      const batches = await request(app.getHttpServer())
+        .get('/batches')
+        .set('Authorization', `Bearer ${companyToken}`)
+        .query({ search: catalogBatchName })
+        .expect(200);
+
+      expect(batches.body.items).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: catalogBatchName }),
+        ]),
+      );
+
+      const skills = await request(app.getHttpServer())
+        .get('/skills')
+        .set('Authorization', `Bearer ${companyToken}`)
+        .query({ search: skillName })
+        .expect(200);
+
+      expect(skills.body.items).toEqual(
+        expect.arrayContaining([expect.objectContaining({ name: skillName })]),
+      );
+
+      const specializations = await request(app.getHttpServer())
+        .get('/specializations')
+        .set('Authorization', `Bearer ${companyToken}`)
+        .query({ search: specializationName })
+        .expect(200);
+
+      expect(specializations.body.items).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: specializationName }),
+        ]),
+      );
+    });
+
+    it('rejects non-admin catalog writes', async () => {
+      await request(app.getHttpServer())
+        .post('/skills')
+        .set('Authorization', `Bearer ${companyToken}`)
+        .send({
+          name: 'Rejected Skill E2E',
+        })
+        .expect(403);
     });
   });
 });

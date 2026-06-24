@@ -25,8 +25,6 @@ import { BatchModule } from './batch/batch.module';
 import { SkillModule } from './skill/skill.module';
 import { SpecializationModule } from './specialization/specialization.module';
 
-
-
 @Module({
   imports: [
     EventEmitterModule.forRoot({ wildcard: true, global: true }),
@@ -82,7 +80,7 @@ import { SpecializationModule } from './specialization/specialization.module';
       provide: APP_FILTER,
       useClass: SentryGlobalFilter,
     },
-    IsUniqueConstraint
+    IsUniqueConstraint,
   ],
 })
 export class AppModule {}
