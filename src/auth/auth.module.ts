@@ -27,7 +27,6 @@ import { AuthEventEmitter } from './events/emitters/auth.event-emitter';
     TokenService,
     OpaqueStrategy,
     OptionalOpaqueStrategy,
-    TokensCleanupService,
     AuthEventEmitter,
   ],
   controllers: [AuthController],

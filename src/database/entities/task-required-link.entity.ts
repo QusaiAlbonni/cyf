@@ -13,7 +13,6 @@ import { Task } from './task.entity';
 export enum SubmissionLinkType {
   GITHUB = 'github',
   GOOGLE_DRIVE = 'google_drive',
-  LINKEDIN = 'linkedin',
   LIVE_DEMO = 'live_demo',
   VIDEO = 'video',
 }

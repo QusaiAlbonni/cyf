@@ -24,6 +24,8 @@ import { createKeyv } from '@keyv/redis';
 import { BatchModule } from './batch/batch.module';
 import { SkillModule } from './skill/skill.module';
 import { SpecializationModule } from './specialization/specialization.module';
+import { TaskModule } from './task/task.module';
+import { SubmissionModule } from './submission/submission.module';
 
 @Module({
   imports: [
@@ -74,6 +76,8 @@ import { SpecializationModule } from './specialization/specialization.module';
     BatchModule,
     SkillModule,
     SpecializationModule,
+    TaskModule,
+    SubmissionModule,
   ],
   providers: [
     {

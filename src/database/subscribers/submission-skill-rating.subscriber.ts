@@ -1,5 +1,4 @@
 import {
-  DataSource,
   EntitySubscriberInterface,
   EventSubscriber,
   InsertEvent,
@@ -7,15 +6,11 @@ import {
   UpdateEvent,
 } from 'typeorm';
 import { SubmissionSkillRating } from '../entities/submission-skill-rating.entity';
+import { Injectable } from '@nestjs/common';
 
 @EventSubscriber()
-export class SubmissionSkillRatingSubscriber
-  implements EntitySubscriberInterface<SubmissionSkillRating>
-{
-  constructor(dataSource: DataSource) {
-    dataSource.subscribers.push(this);
-  }
-
+@Injectable()
+export class SubmissionSkillRatingSubscriber implements EntitySubscriberInterface<SubmissionSkillRating> {
   listenTo() {
     return SubmissionSkillRating;
   }
@@ -59,9 +54,13 @@ export class SubmissionSkillRatingSubscriber
         UPDATE users
         SET average_rating = COALESCE(
           (
-            SELECT ROUND(AVG(rating)::numeric, 2)
-            FROM submission_skill_ratings
-            WHERE student_id = $1
+            SELECT ROUND(AVG(skill_average)::numeric, 2)
+            FROM (
+              SELECT AVG(rating) AS skill_average
+              FROM submission_skill_ratings
+              WHERE student_id = $1
+              GROUP BY skill_id
+            ) skill_ratings
           ),
           0
         )
