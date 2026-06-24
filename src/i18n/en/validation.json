@@ -1,0 +1,9 @@
+{
+  "isString": "{property} must be a string",
+  "isBoolean": "{property} must be a boolean value",
+  "isNotEmpty": "{property} should not be empty",
+  "minLength": "{property} must be at least {constraints.0} characters long",
+  "maxLength": "{property} must be at most {constraints.0} characters long",
+  "isPhoneNumber": "{property} with value \"{value}\" is not a valid phone number",
+  "isPhoneFromCountries": "{property} with value \"{value}\" is not from an allowed country"
+}

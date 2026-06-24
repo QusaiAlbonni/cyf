@@ -1,0 +1,9 @@
+{
+  "isString": "يجب أن تكون {property} نصًا",
+  "isBoolean": "يجب أن تكون {property} قيمة منطقية",
+  "isNotEmpty": "يجب ألا تكون {property} فارغة",
+  "minLength": "{property} بقيمة \"{value}\" يجب أن تكون على الأقل {constraints.0} حرفًا",
+  "maxLength": "{property} بقيمة \"{value}\" يجب أن تكون على الأكثر {constraints.0} حرفًا",
+  "isPhoneNumber": "{property} بقيمة \"{value}\" ليس رقم هاتف صالحًا",
+  "isPhoneFromCountries": "{property} بقيمة \"{value}\" ليس من الدول المسموح بها"
+}

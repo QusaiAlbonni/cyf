@@ -1,0 +1,55 @@
+services:
+  dev-postgres:
+    image: postgres:latest
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: dev
+    ports:
+      - 5435:5432
+    networks:
+      - main-network
+
+  test-postgres:
+    image: postgres:latest
+    container_name: postgres_test
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: test
+    ports:
+      - 5436:5432
+    networks:
+      - main-network
+
+  localstack:
+    image: localstack/localstack:latest
+    container_name: localstack
+    restart: always
+    environment:
+      - SERVICES=s3
+      - DEFAULT_REGION=us-east-1
+      - DATA_DIR=/tmp/localstack/data
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    ports:
+      - 4566:4566
+    networks:
+      - main-network
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: always
+    ports:
+      - 6380:6379
+    networks:
+      - main-network
+
+networks:
+  main-network:

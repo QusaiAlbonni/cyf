@@ -1,0 +1,16 @@
+stages:
+  - deploy
+
+fly-deploy:
+  stage: deploy
+  image: ubuntu:latest
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq curl
+    - curl -L https://fly.io/install.sh | sh
+    - export PATH="$PATH:/root/.fly/bin"
+  script:
+    - flyctl deploy --remote-only
+  only:
+    - master
+  variables:
+    FLY_API_TOKEN: $FLY_API_TOKEN
