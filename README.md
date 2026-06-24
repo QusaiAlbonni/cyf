@@ -15,6 +15,11 @@ Install dependencies:
 npm install
 ```
 
+Spin up a DB if you dont have one:
+```bash
+npm run db:restart:dev
+```
+
 Start the development server:
 
 ```bash
