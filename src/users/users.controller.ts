@@ -127,7 +127,7 @@ export class UsersController {
       },
     }),
   )
-  @Throttle({ default: { ttl: 10000, limit: 1 } })
+  @Throttle({ default: { ttl: 1000, limit: 1 } })
   @UseGuards(OpaqueAuthGuard)
   @Patch('/me')
   async editUserMe(

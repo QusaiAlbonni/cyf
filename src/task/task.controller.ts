@@ -52,7 +52,7 @@ export class TaskController {
     status: 200,
     type: PaginatedDto<TaskResponseDto>(TaskResponseDto),
   })
-  @Roles(Role.ADMIN, Role.STUDENT)
+  @Roles(Role.ADMIN, Role.STUDENT, Role.COMPANY)
   @Get()
   getAll(
     @Query() query: TaskQueryDto,
@@ -64,7 +64,7 @@ export class TaskController {
 
   @ApiOperation({ summary: 'Get a task' })
   @ApiResponse({ status: 200, type: TaskResponseDto })
-  @Roles(Role.ADMIN, Role.STUDENT)
+  @Roles(Role.ADMIN, Role.STUDENT, Role.COMPANY)
   @Get('/:id')
   getOne(@Param('id', ParseIntPipe) id: number, @GetUser() user: User) {
     return this.taskService.getOne(id, user);

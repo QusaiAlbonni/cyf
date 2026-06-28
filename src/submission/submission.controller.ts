@@ -50,7 +50,7 @@ export class SubmissionController {
     status: 200,
     type: PaginatedDto<SubmissionResponseDto>(SubmissionResponseDto),
   })
-  @Roles(Role.ADMIN, Role.STUDENT)
+  @Roles(Role.ADMIN, Role.STUDENT, Role.COMPANY)
   @Get()
   getAll(
     @Query() query: SubmissionQueryDto,
@@ -62,7 +62,7 @@ export class SubmissionController {
 
   @ApiOperation({ summary: 'Get a submission' })
   @ApiResponse({ status: 200, type: SubmissionResponseDto })
-  @Roles(Role.ADMIN, Role.STUDENT)
+  @Roles(Role.ADMIN, Role.STUDENT, Role.COMPANY)
   @Get('/:id')
   getOne(@Param('id', ParseIntPipe) id: number, @GetUser() user: User) {
     return this.submissionService.getOne(id, user);
