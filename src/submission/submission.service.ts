@@ -326,6 +326,10 @@ export class SubmissionService {
       return;
     }
 
+    if (user.role === Role.COMPANY) {
+      return;
+    }
+
     if (user.role !== Role.STUDENT || submission.studentId !== user.id) {
       throw new ForbiddenException('You cannot access this submission');
     }
@@ -388,7 +392,8 @@ export class SubmissionService {
   private validateLinkMatchesType(link: SubmissionLinkDto) {
     const urlValidators: Partial<Record<SubmissionLinkType, RegExp>> = {
       [SubmissionLinkType.GITHUB]: /^https:\/\/(www\.)?github\.com\/.+/i,
-      [SubmissionLinkType.GOOGLE_DRIVE]: /^https:\/\/drive\.google\.com\/.+/i,
+      [SubmissionLinkType.GOOGLE_DRIVE]:
+        /^https:\/\/(?:drive|docs)\.google\.com\/(?:.+)$/i,
       [SubmissionLinkType.VIDEO]:
         /^https:\/\/((www\.|m\.)?youtube\.com\/(watch\?v=[A-Za-z0-9_-]+.*|shorts\/[A-Za-z0-9_-]+.*|embed\/[A-Za-z0-9_-]+.*)|youtu\.be\/[A-Za-z0-9_-]+.*|(www\.)?vimeo\.com\/[0-9]+.*|player\.vimeo\.com\/video\/[0-9]+.*)$/i,
     };

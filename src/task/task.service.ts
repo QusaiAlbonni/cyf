@@ -255,6 +255,10 @@ export class TaskService {
       return;
     }
 
+    if (user.role === Role.COMPANY) {
+      return;
+    }
+
     if (user.role !== Role.STUDENT || !this.studentCanAccessTask(task, user)) {
       throw new ForbiddenException('You cannot access this task');
     }
